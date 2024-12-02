@@ -1,50 +1,62 @@
+"""
+src/train_model.py
+
+Trains the binary classification model for cats vs. dogs.
+- Loads the preprocessed dataset and model.
+- Configures callbacks for saving the best model.
+- Plots and saves accuracy and loss graphs.
+"""
+
 import os
 import sys
+
+# Add the project root directory to the system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from models.model import model
-from src.load_data import train_data, val_data
+from models.model import model           # Import the defined model
+from src.load_data import train_data, val_data  # Import training and validation data generators
 
-# Hyperparameters configurations
-EPOCHS = 10
-STEPS_PER_EPOCH = train_data.samples // train_data.batch_size
-VALIDATION_STEPS = val_data.samples // val_data.batch_size
+# --- Hyperparameters ---
+EPOCHS = 10  # Number of training epochs
+STEPS_PER_EPOCH = train_data.samples // train_data.batch_size  # Steps per epoch for training
+VALIDATION_STEPS = val_data.samples // val_data.batch_size     # Steps per epoch for validation
 
-# Callback for saving the model during training
-checkpoint_path = 'models/saved_model.keras'
+# --- Callbacks ---
+checkpoint_path = 'models/saved_model.keras'  # Path to save the best model during training
 callbacks = [
     tf.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_path,
-        monitor='val_accuracy',
-        save_best_only=True,
+        monitor='val_accuracy',  # Monitor validation accuracy to save the best model
+        save_best_only=True,     # Save only when validation accuracy improves
         verbose=1
     )
 ]
 
-# Model training
+# --- Model Training ---
 history = model.fit(
-    train_data,
+    train_data,                # Training data generator
     steps_per_epoch=STEPS_PER_EPOCH,
-    validation_data=val_data,
+    validation_data=val_data,  # Validation data generator
     validation_steps=VALIDATION_STEPS,
     epochs=EPOCHS,
-    callbacks=callbacks,
-    verbose=1
+    callbacks=callbacks,       # Save the best model during training
+    verbose=1                  # Print detailed training logs
 )
 
-# Saves the final model
+# --- Save Final Model ---
 save_file_path = 'models/final_model.keras'
 model.save(save_file_path)
 print(f"Final model saved in {save_file_path}")
 
-accuracy_plot_path = 'img/accuracy_plot.png'
-loss_plot_path = 'img/loss_plot.png'
+# --- Generate and Save Performance Graphs ---
+# Create the directory for saving plots
 os.makedirs('img', exist_ok=True)
 
-# Generates accuracy graphs
-plt.figure(figsize=(10,5))
+# Accuracy Plot
+accuracy_plot_path = 'img/accuracy_plot.png'
+plt.figure(figsize=(10, 5))
 plt.plot(history.history['accuracy'], label='Train Accuracy')
 plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
 plt.legend()
@@ -55,8 +67,9 @@ plt.grid()
 plt.savefig(accuracy_plot_path)
 plt.show()
 
-# Generating loss graphs
-plt.figure(figsize=(10,5))
+# Loss Plot
+loss_plot_path = 'img/loss_plot.png'
+plt.figure(figsize=(10, 5))
 plt.plot(history.history['loss'], label='Train Loss')
 plt.plot(history.history['val_loss'], label='Validation Loss')
 plt.legend()

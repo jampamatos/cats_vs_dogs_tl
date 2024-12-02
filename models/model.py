@@ -1,37 +1,43 @@
+"""
+models/model.py
+
+Defines a binary classification model for cats vs. dogs using transfer learning with MobileNetV2.
+Custom layers are added for the specific classification task, leveraging pre-trained ImageNet weights.
+"""
+
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'    # Reduce log messages from TensorFlow to critic errors
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'   # Force TensorFlow to use CPU rather than GPUs 
+# Suppress TensorFlow logs and force CPU usage
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 import tensorflow as tf
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Flatten, GlobalAveragePooling2D
+from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D
 
-# Base model congiguration
+# Initialize pre-trained MobileNetV2 as the base model
 base_model = MobileNetV2(
-    input_shape=(224,224,3),     # Image size (IMG_SIZE + 3 channels)
-    include_top=False,           # Remove fully-connected layers
-    weights='imagenet'           # Use pre-trained weights in ImageNet
+    input_shape=(224, 224, 3),  # Input: 224x224 RGB images
+    include_top=False,          # Exclude original fully connected layers
+    weights='imagenet'          # Use ImageNet weights
 )
+base_model.trainable = False  # Freeze base model weights
 
-# Freeze base model so to not alter pre-trained weights 
-base_model.trainable = False
-
-# Complete model adding final layers
+# Build the full model
 model = Sequential([
-    base_model,                     # Base Model
-    GlobalAveragePooling2D(),       # Return data to a 2D vector
-    Dense(128, activation='relu'),  # Fully-connected layer with 128 neurons
-    Dropout(0.5),                   # Dropout random 50% neurons to avoid overfitting
-    Dense(1, activation='sigmoid')  # Binary output (0=cat, 1=dog)
+    base_model,                     # Pre-trained base
+    GlobalAveragePooling2D(),       # Converts feature maps to 2D vectors
+    Dense(128, activation='relu'),  # Fully connected layer
+    Dropout(0.5),                   # Dropout for regularization
+    Dense(1, activation='sigmoid')  # Output: binary classification (0=cats, 1=dogs)
 ])
 
-# Compile model
+# Compile the model
 model.compile(
-    optimizer='adam',               # Adam Optimizer
-    loss='binary_crossentropy',     # Binary Loss
-    metrics=['accuracy']            # Precision metric
+    optimizer='adam',               # Optimizer for training
+    loss='binary_crossentropy',     # Loss for binary classification
+    metrics=['accuracy']            # Evaluation metric
 )
 
-# Summarizes the model
+# Print the model summary
 model.summary()

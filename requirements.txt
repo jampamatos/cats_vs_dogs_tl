@@ -3,6 +3,6 @@ keras
 matplotlib==3.9.2
 numpy
 tensorflow # Adicionando o TensorFlow diretamente
-torch==2.5.1  # Caso deseje usar PyTorch
-torchvision==0.20.1
 tqdm==4.67.1
+pillow>=8.0.0
+keras-preprocessing
